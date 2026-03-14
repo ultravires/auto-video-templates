@@ -59,59 +59,18 @@ const Starfield: React.FC<{
 };
 
 const OpenclawLogoModel: React.FC<{
-  rotation: [number, number, number];
   scale: number;
   yOffset: number;
-}> = ({ rotation, scale, yOffset }) => {
-  const [model, setModel] = useState<Object3D | null>(null);
-  const [loadFailed, setLoadFailed] = useState(false);
-  const modelUrl = useMemo(() => staticFile(OPENCLAW_MODEL_FILE), []);
-  const texturePath = useMemo(() => staticFile(OPENCLAW_TEXTURE_DIR), []);
-
-  useEffect(() => {
-    let active = true;
-    const loader = new GLTFLoader();
-    loader.setResourcePath(texturePath);
-
-    loader.load(
-      modelUrl,
-      (gltf) => {
-        if (!active) {
-          return;
-        }
-
-        const clonedScene = gltf.scene.clone(true);
-
-        setModel(clonedScene);
-        setLoadFailed(false);
-      },
-      undefined,
-      () => {
-        if (active) {
-          setLoadFailed(true);
-        }
-      },
-    );
-
-    return () => {
-      active = false;
-    };
-  }, [modelUrl, texturePath]);
-
-  if (model && !loadFailed) {
-    return (
-      <group position={[0, yOffset, 0]} rotation={rotation} scale={scale}>
-        <primitive object={model} />
-      </group>
-    );
-  }
+  model: Object3D | null;
+}> = ({ scale, yOffset, model }) => {
+  if (!model) return null;
 
   return (
-    <group position={[0, yOffset, 0]} scale={scale}>
-      <mesh rotation={rotation}>
-        <torusKnotGeometry args={[0.9, 0.24, 180, 28]} />
-        <meshStandardMaterial color="#22d3ee" metalness={0.5} roughness={0.2} />
-      </mesh>
+    <group
+      position={[0, yOffset, 0]}
+      scale={scale}
+    >
+      <primitive object={model} />
     </group>
   );
 };
@@ -120,27 +79,70 @@ export const ThreeDemo: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, width, height, durationInFrames } = useVideoConfig();
 
+  const [model, setModel] = useState<Object3D | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [webglAvailable, setWebglAvailable] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    if (typeof document === "undefined") {
+      setWebglAvailable(false);
+      return;
+    }
+
+    const canvas = document.createElement("canvas");
+    const context =
+      canvas.getContext("webgl2", { antialias: false }) ??
+      canvas.getContext("webgl", { antialias: false });
+    setWebglAvailable(Boolean(context));
+  }, []);
+
+  useEffect(() => {
+    if (webglAvailable === false) {
+      setLoading(false);
+      return;
+    }
+
+    if (webglAvailable === null) {
+      return;
+    }
+
+    const loader = new GLTFLoader();
+    const modelPath = staticFile(OPENCLAW_MODEL_FILE);
+    const texturePath = staticFile(OPENCLAW_TEXTURE_DIR);
+
+    loader.setResourcePath(texturePath);
+
+    loader.load(
+      modelPath,
+      (gltf) => {
+        const obj = gltf.scene;
+        obj.scale.set(1, 1, 1);
+        setModel(obj);
+        setLoading(false);
+      },
+      undefined,
+      (err) => {
+        console.error("模型加载失败", err);
+        setLoading(false);
+      }
+    );
+  }, [webglAvailable]);
+
+  // 动画逻辑
   const entrance = spring({
     frame,
     fps,
-    config: {
-      damping: 16,
-      mass: 0.9,
-      stiffness: 120,
-    },
+    config: { damping: 16, mass: 0.9, stiffness: 120 },
   });
 
-  const spinY = frame * 0.03;
-  const spinX = frame * 0.015;
-  const bob = Math.sin((frame / fps) * Math.PI * 2) * 0.35;
+  const bob = Math.sin((frame / fps) * Math.PI * 1.5) * 0.25;
   const sceneScale = interpolate(entrance, [0, 1], [0.6, 1]);
 
   const cameraZ = interpolate(frame, [0, 90, 180], [8, 5.2, 7], {
     easing: Easing.inOut(Easing.cubic),
-    extrapolateLeft: "clamp",
-    extrapolateRight: "clamp",
   });
 
+  // 颜色渐变
   const bgTop = interpolateColors(
     frame,
     [0, durationInFrames / 2, durationInFrames],
@@ -170,17 +172,26 @@ export const ThreeDemo: React.FC = () => {
       }}
     >
       <Starfield frame={frame} fps={fps} />
-      <ThreeCanvas width={width} height={height} camera={{ position: [0, 0, cameraZ], fov: 42 }}>
-        <ambientLight intensity={0.22} color="#3a1116" />
-        <directionalLight position={[0, 1.2, 6]} intensity={1.25} color="#ffe2e7" />
-        <pointLight position={[-3.5, -2.8, 2.2]} intensity={0.35} color="#7f1d1d" />
 
-        <OpenclawLogoModel
-          rotation={[spinX * 0.45, spinY, spinY * 0.12]}
-          scale={sceneScale * 1.35}
-          yOffset={bob + 0.45}
-        />
-      </ThreeCanvas>
+      {webglAvailable ? (
+        <ThreeCanvas
+          width={width}
+          height={height}
+          camera={{ position: [0, 0, cameraZ], fov: 42 }}
+        >
+          <ambientLight intensity={0.22} color="#3a1116" />
+          <directionalLight position={[0, 1.2, 6]} intensity={1.25} color="#ffe2e7" />
+          <pointLight position={[-3.5, -2.8, 2.2]} intensity={0.35} color="#7f1d1d" />
+
+          {!loading && <OpenclawLogoModel
+            model={model}
+            scale={sceneScale}
+            yOffset={bob + 0.2}
+          />}
+        </ThreeCanvas>
+      ) : null}
+
+      {/* 文字 */}
       <AbsoluteFill
         style={{
           justifyContent: "center",
@@ -228,3 +239,5 @@ export const ThreeDemo: React.FC = () => {
     </AbsoluteFill>
   );
 };
+
+export default ThreeDemo;
