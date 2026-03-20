@@ -5,6 +5,7 @@ import {
   Easing,
   interpolate,
   interpolateColors,
+  Series,
   spring,
   staticFile,
   useCurrentFrame,
@@ -12,6 +13,8 @@ import {
 } from "remotion";
 import type { Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { TerminalScene } from "./TerminalScene";
+import { BrowserScene } from "./BrowserScene";
 
 const OPENCLAW_MODEL_FILE = "open-claw/source/Armature.glb";
 const OPENCLAW_TEXTURE_DIR = "open-claw/textures/";
@@ -75,7 +78,7 @@ const OpenclawLogoModel: React.FC<{
   );
 };
 
-export const ThreeDemo: React.FC = () => {
+const IntroScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, width, height, durationInFrames } = useVideoConfig();
 
@@ -237,6 +240,22 @@ export const ThreeDemo: React.FC = () => {
         </div>
       </AbsoluteFill>
     </AbsoluteFill>
+  );
+};
+
+export const ThreeDemo: React.FC = () => {
+  return (
+    <Series>
+      <Series.Sequence durationInFrames={180}>
+        <IntroScene />
+      </Series.Sequence>
+      <Series.Sequence durationInFrames={120}>
+        <BrowserScene />
+      </Series.Sequence>
+      <Series.Sequence durationInFrames={120}>
+        <TerminalScene />
+      </Series.Sequence>
+    </Series>
   );
 };
 
