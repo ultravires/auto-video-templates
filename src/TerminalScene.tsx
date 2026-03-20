@@ -1,6 +1,6 @@
-import React from "react";
 import {
   AbsoluteFill,
+  Easing,
   interpolate,
   spring,
   useCurrentFrame,
@@ -10,7 +10,7 @@ import {
 const COLOR_BG = "#ffffff";
 const COLOR_TERMINAL_BG = "#ffffff";
 const COLOR_TEXT = "#000000";
-const FULL_TEXT = "pnpm add openclaw@latest";
+const FULL_TEXT = "npm add openclaw@latest";
 const CHAR_FRAMES = 3;
 const CURSOR_BLINK_FRAMES = 20;
 
@@ -35,6 +35,29 @@ const Cursor: React.FC<{
   );
 };
 
+const MousePointer: React.FC<{ x: number; y: number; opacity: number }> = ({ x, y, opacity }) => (
+  <div
+    style={{
+      position: "absolute",
+      top: 0,
+      left: 0,
+      transform: `translate(${x}px, ${y}px)`,
+      opacity,
+      zIndex: 100,
+      pointerEvents: "none",
+    }}
+  >
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+      <path
+        d="M5.65376 12.3673H5.46026L5.31717 12.4976L0.500002 16.8829L0.500002 1.19841L11.7841 12.3673H5.65376Z"
+        fill="white"
+        stroke="black"
+        strokeWidth="1"
+      />
+    </svg>
+  </div>
+);
+
 export const TerminalScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
@@ -47,10 +70,21 @@ export const TerminalScene: React.FC = () => {
     },
   });
 
-  // 镜头推进效果 (Camera Zoom-in)
-  const zoom = interpolate(frame, [0, durationInFrames], [1, 1.15]);
+  // 1. 光标路径动画
+  const mouseX = interpolate(frame, [0, 25, 120], [700, 100, 150], {
+    easing: Easing.out(Easing.exp),
+  });
+  const mouseY = interpolate(frame, [0, 25, 120], [400, 80, 80], {
+    easing: Easing.out(Easing.exp),
+  });
+  const mouseOpacity = interpolate(frame, [0, 10, durationInFrames - 10, durationInFrames], [0, 1, 1, 0]);
 
-  const charsToShow = Math.floor(frame / CHAR_FRAMES);
+  // 2. 镜头跟随动画 - 更快且由快到慢
+  const zoom = interpolate(frame, [0, 30, durationInFrames], [1, 1.4, 1.5], {
+    easing: Easing.out(Easing.exp),
+  });
+
+  const charsToShow = Math.floor(Math.max(0, frame - 25) / CHAR_FRAMES);
   const typedText = FULL_TEXT.slice(0, charsToShow);
 
   return (
@@ -60,6 +94,7 @@ export const TerminalScene: React.FC = () => {
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
+        overflow: "hidden",
       }}
     >
       <div
@@ -72,10 +107,14 @@ export const TerminalScene: React.FC = () => {
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
+          // 关键修改：设置缩放中心为左上角，位置固定，仅拉近
           transform: `scale(${entrance * zoom})`,
+          transformOrigin: "0 0",
           border: "1px solid #e0e0e0",
+          position: "relative",
         }}
       >
+        <MousePointer x={mouseX} y={mouseY} opacity={mouseOpacity} />
         {/* Mac Terminal Header */}
         <div
           style={{
