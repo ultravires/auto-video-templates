@@ -9,6 +9,7 @@
     "@remotion/cli": "4.0.435",
     "@remotion/tailwind-v4": "4.0.435",
     "@remotion/three": "4.0.435",
+    "@remotion/transitions": "4.0.435",
     "@remotion/zod-types": "4.0.435",
     "@types/three": "^0.183.1",
     "react": "19.2.3",

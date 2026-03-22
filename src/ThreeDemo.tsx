@@ -5,7 +5,6 @@ import {
   Easing,
   interpolate,
   interpolateColors,
-  Series,
   spring,
   staticFile,
   useCurrentFrame,
@@ -13,6 +12,8 @@ import {
 } from "remotion";
 import type { Object3D } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { TransitionSeries, linearTiming } from "@remotion/transitions";
+import { slide } from "@remotion/transitions/slide";
 import { TerminalScene } from "./TerminalScene";
 import { BrowserScene } from "./BrowserScene";
 
@@ -204,17 +205,29 @@ const IntroScene: React.FC = () => {
 
 export const ThreeDemo: React.FC = () => {
   return (
-    <Series>
-      <Series.Sequence durationInFrames={180}>
+    <TransitionSeries>
+      <TransitionSeries.Sequence durationInFrames={180}>
         <IntroScene />
-      </Series.Sequence>
-      <Series.Sequence durationInFrames={120}>
+      </TransitionSeries.Sequence>
+      
+      <TransitionSeries.Transition
+        presentation={slide()}
+        timing={linearTiming({ durationInFrames: 30 })}
+      />
+      
+      <TransitionSeries.Sequence durationInFrames={150}>
         <BrowserScene />
-      </Series.Sequence>
-      <Series.Sequence durationInFrames={120}>
+      </TransitionSeries.Sequence>
+      
+      <TransitionSeries.Transition
+        presentation={slide()}
+        timing={linearTiming({ durationInFrames: 30 })}
+      />
+      
+      <TransitionSeries.Sequence durationInFrames={150}>
         <TerminalScene />
-      </Series.Sequence>
-    </Series>
+      </TransitionSeries.Sequence>
+    </TransitionSeries>
   );
 };
 

@@ -14,3 +14,4 @@ Use this skills whenever you are dealing with Remotion code to obtain the domain
 Read individual rule files for detailed explanations and code examples:
 
 - [rules/command](rules/command.md) - Command scene in Remotion use like mac terminal
+- [rules/title](rules/title.md) - Title scene in Remotion
