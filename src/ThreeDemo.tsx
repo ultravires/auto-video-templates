@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { ThreeCanvas } from "@remotion/three";
 import {
   AbsoluteFill,
@@ -16,50 +16,10 @@ import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { TerminalScene } from "./TerminalScene";
 import { BrowserScene } from "./BrowserScene";
 
+import { MainBackground } from "./Background";
+
 const OPENCLAW_MODEL_FILE = "open-claw/source/Armature.glb";
 const OPENCLAW_TEXTURE_DIR = "open-claw/textures/";
-const STAR_COUNT = 90;
-
-const Starfield: React.FC<{
-  frame: number;
-  fps: number;
-}> = ({ frame, fps }) => {
-  const stars = useMemo(() => {
-    return Array.from({ length: STAR_COUNT }, (_, i) => {
-      const seed = i + 1;
-      const x = ((Math.sin(seed * 91.137) + 1) / 2) * 100;
-      const y = ((Math.sin(seed * 47.923) + 1) / 2) * 100;
-      const size = 1 + (((Math.sin(seed * 13.37) + 1) / 2) * 2.2);
-      const phase = ((Math.sin(seed * 7.77) + 1) / 2) * Math.PI * 2;
-
-      return { x, y, size, phase };
-    });
-  }, []);
-
-  return (
-    <AbsoluteFill style={{ pointerEvents: "none" }}>
-      {stars.map((star, index) => {
-        const twinkle = 0.3 + Math.abs(Math.sin((frame / fps) * 1.5 + star.phase)) * 0.7;
-        return (
-          <div
-            key={index}
-            style={{
-              position: "absolute",
-              left: `${star.x}%`,
-              top: `${star.y}%`,
-              width: star.size,
-              height: star.size,
-              borderRadius: "50%",
-              backgroundColor: "#ffe4e6",
-              opacity: twinkle,
-              boxShadow: "0 0 8px rgba(255, 163, 163, 0.9)",
-            }}
-          />
-        );
-      })}
-    </AbsoluteFill>
-  );
-};
 
 const OpenclawLogoModel: React.FC<{
   scale: number;
@@ -138,6 +98,18 @@ const IntroScene: React.FC = () => {
     config: { damping: 16, mass: 0.9, stiffness: 120 },
   });
 
+  const textEntrance1 = spring({
+    frame: frame - 10,
+    fps,
+    config: { damping: 12, stiffness: 100 },
+  });
+
+  const textEntrance2 = spring({
+    frame: frame - 20,
+    fps,
+    config: { damping: 12, stiffness: 100 },
+  });
+
   const bob = Math.sin((frame / fps) * Math.PI * 1.5) * 0.25;
   const sceneScale = interpolate(entrance, [0, 1], [0.6, 1]);
 
@@ -145,17 +117,6 @@ const IntroScene: React.FC = () => {
     easing: Easing.inOut(Easing.cubic),
   });
 
-  // 颜色渐变
-  const bgTop = interpolateColors(
-    frame,
-    [0, durationInFrames / 2, durationInFrames],
-    ["#140404", "#24070a", "#120203"],
-  );
-  const bgBottom = interpolateColors(
-    frame,
-    [0, durationInFrames / 2, durationInFrames],
-    ["#020202", "#0a0506", "#000000"],
-  );
   const textColorA = interpolateColors(
     frame,
     [0, durationInFrames / 2, durationInFrames],
@@ -169,12 +130,8 @@ const IntroScene: React.FC = () => {
   const gradientShift = (frame * 1.2) % 200;
 
   return (
-    <AbsoluteFill
-      style={{
-        backgroundImage: `radial-gradient(circle at 20% 10%, rgba(255, 47, 87, 0.22), transparent 45%), radial-gradient(circle at 80% 18%, rgba(195, 16, 61, 0.16), transparent 38%), linear-gradient(180deg, ${bgTop} 0%, ${bgBottom} 100%)`,
-      }}
-    >
-      <Starfield frame={frame} fps={fps} />
+    <AbsoluteFill>
+      <MainBackground />
 
       {webglAvailable ? (
         <ThreeCanvas
@@ -214,7 +171,8 @@ const IntroScene: React.FC = () => {
             backgroundPositionX: `${gradientShift}%`,
             WebkitBackgroundClip: "text",
             color: "transparent",
-            transform: "translateY(150px)",
+            opacity: textEntrance1,
+            transform: `translateY(${interpolate(textEntrance1, [0, 1], [190, 150])}px)`,
             textShadow: "0 0 26px rgba(255, 102, 128, 0.25)",
           }}
         >
@@ -232,7 +190,8 @@ const IntroScene: React.FC = () => {
             backgroundPositionX: `${gradientShift}%`,
             WebkitBackgroundClip: "text",
             color: "transparent",
-            transform: "translateY(180px)",
+            opacity: textEntrance2,
+            transform: `translateY(${interpolate(textEntrance2, [0, 1], [220, 180])}px)`,
             textShadow: "0 0 26px rgba(255, 102, 128, 0.25)",
           }}
         >

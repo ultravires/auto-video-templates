@@ -1,3 +1,11 @@
+---
+name: command
+description: Command scene in Remotion use like Mac terminal
+metadata:
+  tags: command
+---
+
+```tsx
 import React from "react";
 import {
   AbsoluteFill,
@@ -10,9 +18,9 @@ import {
 
 import { MainBackground } from "./Background";
 
-const COLOR_BROWSER_BG = "#ffffff";
-const COLOR_TEXT = "#3f3f46";
-const URL_TEXT = "https://nodejs.org/";
+const COLOR_TERMINAL_BG = "#181818";
+const COLOR_TEXT = "#ffffff";
+const FULL_TEXT = "npm add openclaw@latest";
 const CHAR_FRAMES = 3;
 const CURSOR_BLINK_FRAMES = 20;
 
@@ -26,9 +34,9 @@ const Cursor: React.FC<{
     <span
       style={{
         display: "inline-block",
-        width: "2px",
-        height: "20px",
-        backgroundColor: "#3b82f6",
+        width: "12px",
+        height: "24px",
+        backgroundColor: COLOR_TEXT,
         marginLeft: "2px",
         verticalAlign: "middle",
         opacity,
@@ -60,21 +68,23 @@ const MousePointer: React.FC<{ x: number; y: number; opacity: number }> = ({ x, 
   </div>
 );
 
-export const BrowserScene: React.FC = () => {
+export const TerminalScene: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps, durationInFrames } = useVideoConfig();
 
   const entrance = spring({
     frame,
     fps,
-    config: { damping: 12 },
+    config: {
+      damping: 12,
+    },
   });
 
   // 1. 光标路径动画
-  const mouseX = interpolate(frame, [0, 25, 120], [800, 300, 350], {
+  const mouseX = interpolate(frame, [0, 25, 120], [700, 100, 150], {
     easing: Easing.out(Easing.exp),
   });
-  const mouseY = interpolate(frame, [0, 25, 120], [500, 48, 48], {
+  const mouseY = interpolate(frame, [0, 25, 120], [400, 80, 80], {
     easing: Easing.out(Easing.exp),
   });
   const mouseOpacity = interpolate(frame, [0, 10, durationInFrames - 10, durationInFrames], [0, 1, 1, 0]);
@@ -85,7 +95,7 @@ export const BrowserScene: React.FC = () => {
   });
 
   const charsToShow = Math.floor(Math.max(0, frame - 25) / CHAR_FRAMES);
-  const typedText = URL_TEXT.slice(0, charsToShow);
+  const typedText = FULL_TEXT.slice(0, charsToShow);
 
   return (
     <AbsoluteFill
@@ -99,32 +109,31 @@ export const BrowserScene: React.FC = () => {
       <MainBackground />
       <div
         style={{
-          width: 1000,
-          height: 600,
-          backgroundColor: COLOR_BROWSER_BG,
+          width: 900,
+          height: 500,
+          backgroundColor: COLOR_TERMINAL_BG,
           borderRadius: 12,
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          boxShadow: "0 20px 50px rgba(0,0,0,0.15)",
           overflow: "hidden",
           display: "flex",
           flexDirection: "column",
           // 关键修改：设置缩放中心为左上角，位置固定，仅拉近
           transform: `scale(${entrance * zoom})`,
           transformOrigin: "0 0",
-          border: "1px solid #e4e4e7",
+          border: "1px solid #0e0e0e",
           position: "relative",
         }}
       >
         <MousePointer x={mouseX} y={mouseY} opacity={mouseOpacity} />
-        {/* Browser Header */}
+        {/* Mac Terminal Header */}
         <div
           style={{
-            height: 60,
-            backgroundColor: "#ffffff",
+            height: 40,
+            backgroundColor: "#2e2e2e",
             display: "flex",
             alignItems: "center",
-            padding: "0 20px",
-            borderBottom: "1px solid #e4e4e7",
-            gap: 20,
+            padding: "0 15px",
+            borderBottom: "1px solid #0e0e0e",
           }}
         >
           <div style={{ display: "flex", gap: 8 }}>
@@ -132,62 +141,37 @@ export const BrowserScene: React.FC = () => {
             <div style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#ffbd2e" }} />
             <div style={{ width: 12, height: 12, borderRadius: "50%", backgroundColor: "#27c93f" }} />
           </div>
-          
-          {/* Address Bar */}
           <div
             style={{
               flex: 1,
-              height: 36,
-              backgroundColor: "#f1f5f9",
-              borderRadius: 18,
-              display: "flex",
-              alignItems: "center",
-              padding: "0 15px",
-              fontSize: 16,
-              color: COLOR_TEXT,
-              fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif",
-              border: "1px solid #e2e8f0",
+              textAlign: "center",
+              fontSize: 14,
+              color: "#fefefe",
+              fontFamily: "sans-serif",
             }}
           >
-            <span style={{ marginRight: 8, opacity: 0.5 }}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-              </svg>
-            </span>
-            <span style={{ color: "#0f172a" }}>{typedText}</span>
-            <Cursor frame={frame} blinkFrames={CURSOR_BLINK_FRAMES} />
-          </div>
-
-          <div style={{ width: 30, opacity: 0.3 }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="3" y1="12" x2="21" y2="12"></line>
-              <line x1="3" y1="6" x2="21" y2="6"></line>
-              <line x1="3" y1="18" x2="21" y2="18"></line>
-            </svg>
+            zsh — 80×24
           </div>
         </div>
 
-        {/* Browser Content Placeholder */}
+        {/* Terminal Content */}
         <div
           style={{
             flex: 1,
-            backgroundColor: "#ffffff",
-            padding: 40,
-            display: "flex",
-            flexDirection: "column",
-            gap: 20,
+            padding: 25,
+            fontFamily: "Menlo, Monaco, 'Courier New', monospace",
+            fontSize: 24,
+            lineHeight: 1.5,
+            color: COLOR_TEXT,
           }}
         >
-          <div style={{ height: 40, width: "60%", backgroundColor: "#f1f5f9", borderRadius: 4 }} />
-          <div style={{ height: 200, width: "100%", backgroundColor: "#f8fafc", borderRadius: 8, border: "1px dashed #e2e8f0" }} />
-          <div style={{ display: "flex", gap: 20 }}>
-            <div style={{ height: 100, flex: 1, backgroundColor: "#f1f5f9", borderRadius: 4 }} />
-            <div style={{ height: 100, flex: 1, backgroundColor: "#f1f5f9", borderRadius: 4 }} />
-            <div style={{ height: 100, flex: 1, backgroundColor: "#f1f5f9", borderRadius: 4 }} />
-          </div>
+          <span style={{ color: "#27c93f", marginRight: 10 }}>➜</span>
+          <span style={{ color: "#27c93f", fontWeight: "bold", marginRight: 10 }}>~</span>
+          <span>{typedText}</span>
+          <Cursor frame={frame} blinkFrames={CURSOR_BLINK_FRAMES} />
         </div>
       </div>
     </AbsoluteFill>
   );
 };
+```

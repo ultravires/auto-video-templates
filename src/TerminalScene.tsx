@@ -1,3 +1,4 @@
+import React from "react";
 import {
   AbsoluteFill,
   Easing,
@@ -7,9 +8,10 @@ import {
   useVideoConfig,
 } from "remotion";
 
-const COLOR_BG = "#ffffff";
-const COLOR_TERMINAL_BG = "#ffffff";
-const COLOR_TEXT = "#000000";
+import { MainBackground } from "./Background";
+
+const COLOR_TERMINAL_BG = "#181818";
+const COLOR_TEXT = "#ffffff";
 const FULL_TEXT = "npm add openclaw@latest";
 const CHAR_FRAMES = 3;
 const CURSOR_BLINK_FRAMES = 20;
@@ -90,13 +92,13 @@ export const TerminalScene: React.FC = () => {
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: COLOR_BG,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         overflow: "hidden",
       }}
     >
+      <MainBackground />
       <div
         style={{
           width: 900,
@@ -110,7 +112,7 @@ export const TerminalScene: React.FC = () => {
           // 关键修改：设置缩放中心为左上角，位置固定，仅拉近
           transform: `scale(${entrance * zoom})`,
           transformOrigin: "0 0",
-          border: "1px solid #e0e0e0",
+          border: "1px solid #0e0e0e",
           position: "relative",
         }}
       >
@@ -119,11 +121,11 @@ export const TerminalScene: React.FC = () => {
         <div
           style={{
             height: 40,
-            backgroundColor: "#f6f6f6",
+            backgroundColor: "#2e2e2e",
             display: "flex",
             alignItems: "center",
             padding: "0 15px",
-            borderBottom: "1px solid #e0e0e0",
+            borderBottom: "1px solid #0e0e0e",
           }}
         >
           <div style={{ display: "flex", gap: 8 }}>
@@ -136,7 +138,7 @@ export const TerminalScene: React.FC = () => {
               flex: 1,
               textAlign: "center",
               fontSize: 14,
-              color: "#666",
+              color: "#fefefe",
               fontFamily: "sans-serif",
             }}
           >
